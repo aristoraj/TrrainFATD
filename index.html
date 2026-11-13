@@ -1,0 +1,1429 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!-- Face Attendance System — Technical Documentation -->
+<title>Face Attendance System — Technical Documentation</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+
+<style>
+/* ── Design tokens ──────────────────────────────────────────────────────────── */
+/* Layout: single-column narrative document, max 860px, left-aligned content   */
+/* ── EdZola Brand Palette ───────────────────────────────────────────────────
+   Primary:   Coral / Salmon  #E8967A
+   Secondary: Teal            #8ECFCA
+   Accent:    Warm Yellow     #F7C948
+   Bg:        Warm Cream      #FDF8F4
+   Text:      Warm Black      #1A1A1A  |  Warm Grey #6B6360
+   ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  --bg:          #FDF8F4;
+  --bg-card:     #FFFFFF;
+  --bg-code:     #FAE8DC;
+  --bg-accent:   #FFF0EB;
+  --fg:          #1A1A1A;
+  --fg-muted:    #6B6360;
+  --fg-subtle:   #9C8F8C;
+  --border:      #E8D5CC;
+  --accent:      #E8967A;
+  --accent-dark: #C9634A;
+  --accent-dim:  #F0B09A;
+  --accent-bg:   #FFF0EB;
+  --teal:        #4DAFA9;
+  --teal-bg:     #E6F5F4;
+  --amber:       #A07C20;
+  --amber-bg:    #FBF0D0;
+  --pill-bg:     #FAE8DC;
+  --pill-fg:     #6B3020;
+
+  --ff-display: 'Space Grotesk', system-ui, sans-serif;
+  --ff-body:    'Inter', system-ui, sans-serif;
+  --ff-mono:    'JetBrains Mono', monospace;
+  color-scheme: light;
+}
+
+/* Dark mode intentionally disabled — EdZola light theme only */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--ff-body);
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--fg);
+  background: var(--bg);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0;
+}
+
+/* ── Cover header ─────────────────────────────────────────────────────────── */
+.cover {
+  background: linear-gradient(135deg, #FDF8F4 0%, #FAE8DC 60%, #F5D5C4 100%);
+  border-top: 4px solid #E8967A;
+  color: #fff;
+  padding: 64px max(24px, env(safe-area-inset-left, 0px));
+  margin-left: max(-16px, calc(-1 * env(safe-area-inset-left, 0px)));
+  margin-right: max(-16px, calc(-1 * env(safe-area-inset-right, 0px)));
+}
+
+.cover-inner { max-width: 860px; margin: 0 auto; }
+
+.cover-eyebrow {
+  font-family: var(--ff-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #E8967A;
+  margin: 0 0 16px;
+}
+
+.cover-title {
+  font-family: var(--ff-display);
+  font-size: clamp(28px, 5vw, 44px);
+  font-weight: 700;
+  line-height: 1.1;
+  margin: 0 0 20px;
+  color: #1A1A1A;
+  text-wrap: balance;
+}
+
+.cover-subtitle {
+  font-size: 16px;
+  color: #6B6360;
+  margin: 0 0 36px;
+  max-width: 580px;
+  line-height: 1.6;
+}
+
+.cover-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.cover-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  background: rgba(255,255,255,0.65);
+  border: 1px solid #E8D5CC;
+  border-radius: 20px;
+  padding: 5px 12px;
+  color: #6B3020;
+  font-family: var(--ff-display);
+}
+
+/* ── TOC bar ─────────────────────────────────────────────────────────────── */
+.toc-bar {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  padding: 12px max(24px, env(safe-area-inset-left, 0px));
+  margin-left: max(-16px, calc(-1 * env(safe-area-inset-left, 0px)));
+  margin-right: max(-16px, calc(-1 * env(safe-area-inset-right, 0px)));
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 10;
+}
+
+.toc-inner {
+  max-width: 860px;
+  margin: 0 auto;
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.toc-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-subtle);
+  margin-right: 8px;
+  white-space: nowrap;
+}
+
+.toc-link {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--fg-muted);
+  text-decoration: none;
+  padding: 3px 10px;
+  border-radius: 20px;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+  font-family: var(--ff-display);
+}
+
+.toc-link:hover {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+/* ── Page body ───────────────────────────────────────────────────────────── */
+.page-body {
+  max-width: 860px;
+  margin: 0 auto;
+  padding-block: 48px;
+}
+
+/* ── Section ─────────────────────────────────────────────────────────────── */
+.section {
+  margin-bottom: 64px;
+}
+
+.section-label {
+  font-family: var(--ff-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 10px;
+}
+
+.section-title {
+  font-family: var(--ff-display);
+  font-size: clamp(22px, 3.5vw, 30px);
+  font-weight: 700;
+  color: var(--fg);
+  margin: 0 0 20px;
+  text-wrap: balance;
+  line-height: 1.2;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 14px;
+}
+
+.section-lead {
+  font-size: 15.5px;
+  color: var(--fg-muted);
+  margin: 0 0 28px;
+  line-height: 1.7;
+  max-width: 720px;
+}
+
+/* ── Subsection ──────────────────────────────────────────────────────────── */
+h3 {
+  font-family: var(--ff-display);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--fg);
+  margin: 36px 0 12px;
+}
+
+h4 {
+  font-family: var(--ff-display);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fg-muted);
+  margin: 24px 0 8px;
+  letter-spacing: 0.03em;
+}
+
+p { margin: 0 0 14px; }
+p:last-child { margin-bottom: 0; }
+
+/* ── Cards / Info boxes ─────────────────────────────────────────────────── */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px 22px;
+  margin-bottom: 16px;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.card-title {
+  font-family: var(--ff-display);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg);
+  margin: 0 0 6px;
+}
+
+.card-desc {
+  font-size: 13px;
+  color: var(--fg-muted);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.card.accent-blue {
+  border-left: 3px solid var(--accent);
+  background: var(--bg-accent);
+}
+
+.card.accent-teal {
+  border-left: 3px solid var(--teal);
+  background: var(--teal-bg);
+}
+
+.card.accent-amber {
+  border-left: 3px solid var(--amber);
+  background: var(--amber-bg);
+}
+
+/* ── Feature list ────────────────────────────────────────────────────────── */
+.feature-list {
+  list-style: none;
+  margin: 0 0 24px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.feature-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--fg);
+}
+
+.feature-list li::before {
+  content: '';
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  background: var(--accent);
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpolyline points='2,6 5,9 10,3' stroke='white' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* ── Step flow ───────────────────────────────────────────────────────────── */
+.flow {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 28px;
+  position: relative;
+}
+
+.flow::before {
+  content: '';
+  position: absolute;
+  left: 19px;
+  top: 36px;
+  bottom: 36px;
+  width: 2px;
+  background: var(--border);
+}
+
+.flow-step {
+  display: flex;
+  gap: 18px;
+  position: relative;
+  padding-bottom: 24px;
+}
+
+.flow-step:last-child { padding-bottom: 0; }
+
+.flow-num {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--ff-display);
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+
+.flow-body { padding-top: 7px; min-width: 0; }
+
+.flow-title {
+  font-family: var(--ff-display);
+  font-weight: 600;
+  font-size: 14.5px;
+  color: var(--fg);
+  margin: 0 0 4px;
+}
+
+.flow-desc {
+  font-size: 13.5px;
+  color: var(--fg-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── Spec table ──────────────────────────────────────────────────────────── */
+.spec-table-wrap {
+  overflow-x: auto;
+  margin-bottom: 24px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  min-width: 480px;
+}
+
+thead th {
+  text-align: left;
+  font-family: var(--ff-display);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-subtle);
+  background: var(--bg-code);
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+tbody td {
+  padding: 11px 16px;
+  color: var(--fg);
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  line-height: 1.5;
+}
+
+tbody tr:last-child td { border-bottom: none; }
+
+tbody tr:hover td { background: var(--bg-accent); }
+
+.td-label {
+  font-family: var(--ff-display);
+  font-weight: 600;
+  color: var(--fg);
+  white-space: nowrap;
+}
+
+.td-mono {
+  font-family: var(--ff-mono);
+  font-size: 12.5px;
+  color: var(--accent);
+}
+
+/* ── Inline code / pill ──────────────────────────────────────────────────── */
+code {
+  font-family: var(--ff-mono);
+  font-size: 12.5px;
+  background: var(--bg-code);
+  color: var(--accent);
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+
+.pill {
+  display: inline-block;
+  font-family: var(--ff-display);
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--pill-bg);
+  color: var(--pill-fg);
+  border-radius: 20px;
+  padding: 2px 9px;
+  letter-spacing: 0.03em;
+}
+
+.pill.blue { background: var(--accent-bg); color: var(--accent); }
+.pill.teal { background: var(--teal-bg); color: var(--teal); }
+.pill.amber { background: var(--amber-bg); color: var(--amber); }
+
+/* ── Layer diagram ───────────────────────────────────────────────────────── */
+.layer-diagram {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.layer {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 18px;
+}
+
+.layer-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.layer-icon.blue { background: var(--accent-bg); }
+.layer-icon.teal { background: var(--teal-bg); }
+.layer-icon.amber { background: var(--amber-bg); }
+
+.layer-content { min-width: 0; }
+
+.layer-name {
+  font-family: var(--ff-display);
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--fg);
+  margin: 0 0 2px;
+}
+
+.layer-detail {
+  font-size: 12.5px;
+  color: var(--fg-muted);
+  margin: 0;
+}
+
+/* ── Two-col layout ──────────────────────────────────────────────────────── */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 600px) {
+  .two-col { grid-template-columns: 1fr; }
+  .card-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Info row (key: value) ───────────────────────────────────────────────── */
+.kv-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.kv {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  font-size: 13.5px;
+}
+
+.kv-key {
+  font-family: var(--ff-display);
+  font-weight: 600;
+  color: var(--fg-muted);
+  min-width: 170px;
+  flex-shrink: 0;
+  font-size: 12.5px;
+}
+
+.kv-val { color: var(--fg); line-height: 1.5; }
+
+/* ── Callout ─────────────────────────────────────────────────────────────── */
+.callout {
+  border-left: 3px solid var(--accent);
+  background: var(--bg-accent);
+  border-radius: 0 8px 8px 0;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  font-size: 13.5px;
+  color: var(--fg-muted);
+  line-height: 1.6;
+}
+
+.callout strong { color: var(--fg); }
+
+/* ── Footer ──────────────────────────────────────────────────────────────── */
+.footer {
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+  margin-left: max(-16px, calc(-1 * env(safe-area-inset-left, 0px)));
+  margin-right: max(-16px, calc(-1 * env(safe-area-inset-right, 0px)));
+  padding: 28px max(24px, env(safe-area-inset-left, 0px));
+  margin-top: 40px;
+}
+
+.footer-inner {
+  max-width: 860px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.footer-text {
+  font-size: 12px;
+  color: var(--fg-subtle);
+  line-height: 1.5;
+}
+
+.footer-badge {
+  font-family: var(--ff-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-subtle);
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 36px 0;
+}
+</style>
+
+<!-- ── COVER ──────────────────────────────────────────────────────────────── -->
+<style>
+/* ── EdZola wordmark ─────────────────────────────────────────────────────── */
+.ez-wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 36px;
+}
+.ez-wordmark-text {
+  font-family: var(--ff-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: #E8967A;
+  letter-spacing: -0.02em;
+}
+.ez-wordmark-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #E8967A;
+  display: inline-block;
+  margin-left: 1px;
+  vertical-align: super;
+}
+.ez-starburst {
+  opacity: 0.22;
+  position: absolute;
+  right: max(24px, env(safe-area-inset-right, 0px));
+  top: 20px;
+  pointer-events: none;
+  user-select: none;
+}
+.cover { position: relative; overflow: hidden; }
+.cover-tagline {
+  font-family: var(--ff-display);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: #9C8F8C;
+  margin: 0 0 36px;
+  font-style: italic;
+}
+/* ── TOC link active accent ──────────────────────────────────────────────── */
+.toc-link:hover {
+  background: var(--accent-bg);
+  color: var(--accent-dark, #C9634A);
+}
+/* ── Section title underline use coral ──────────────────────────────────── */
+.section-title {
+  border-bottom-color: var(--border);
+}
+/* ── thead warm ──────────────────────────────────────────────────────────── */
+thead th {
+  color: var(--fg-muted);
+  background: var(--bg-code);
+}
+/* ── Footer update ───────────────────────────────────────────────────────── */
+.footer {
+  background: #FDF8F4;
+  border-top: 1px solid #E8D5CC;
+}
+.footer-text { color: #9C8F8C; }
+.footer-badge {
+  font-family: var(--ff-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #E8967A;
+  text-transform: none;
+}
+.footer-tagline {
+  font-family: var(--ff-body);
+  font-size: 11px;
+  color: #9C8F8C;
+  font-style: italic;
+  margin-top: 2px;
+}
+/* ── Callout border ──────────────────────────────────────────────────────── */
+.callout { border-left-color: var(--accent); background: var(--bg-accent); }
+/* ── Feature list dot ────────────────────────────────────────────────────── */
+.feature-list li::before { background-color: var(--accent); }
+/* ── flow-num dot ────────────────────────────────────────────────────────── */
+.flow-num { background: var(--accent); }
+/* ── layer icon variant ──────────────────────────────────────────────────── */
+.layer-icon.blue  { background: var(--accent-bg); }
+.layer-icon.teal  { background: var(--teal-bg); }
+.layer-icon.amber { background: var(--amber-bg); }
+</style>
+
+<div class="cover">
+  <!-- EdZola decorative starburst -->
+  <svg class="ez-starburst" width="260" height="260" viewBox="0 0 260 260" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M130 10 L138 118 L246 110 L148 138 L246 150 L138 142 L130 250 L122 142 L14 150 L112 138 L14 110 L122 118 Z" fill="#FAE8DC"/>
+    <path d="M130 50 L136 122 L208 116 L144 134 L208 144 L136 138 L130 210 L124 138 L52 144 L116 134 L52 116 L124 122 Z" fill="#E8967A"/>
+  </svg>
+
+  <div class="cover-inner">
+    <!-- EdZola wordmark -->
+    <div class="ez-wordmark">
+      <span class="ez-wordmark-text">EdZola<span class="ez-wordmark-dot"></span></span>
+    </div>
+
+    <p class="cover-eyebrow">Technical Reference Document</p>
+    <h1 class="cover-title">Face Attendance System — Architecture &amp; Technical Specification</h1>
+    <p class="cover-tagline">Systems built for the world's hardest work.</p>
+    <p class="cover-subtitle">An AI-powered biometric attendance solution integrated with Zoho Creator, using multi-layer facial verification, passive anti-spoofing, and GPS-verified location capture.</p>
+    <div class="cover-meta">
+      <span class="cover-badge">Version 1.0 · 2026</span>
+      <span class="cover-badge">Python Flask + InsightFace</span>
+      <span class="cover-badge">AWS Rekognition</span>
+      <span class="cover-badge">Zoho Creator</span>
+      <span class="cover-badge">Render.com (Singapore)</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOC ────────────────────────────────────────────────────────────────── -->
+<nav class="toc-bar" aria-label="Sections">
+  <div class="toc-inner">
+    <span class="toc-label">Contents</span>
+    <a class="toc-link" href="#overview">Overview</a>
+    <a class="toc-link" href="#stack">Technology Stack</a>
+    <a class="toc-link" href="#ai-models">AI Models</a>
+    <a class="toc-link" href="#flow">End-to-End Flow</a>
+    <a class="toc-link" href="#face-matching">Face Matching</a>
+    <a class="toc-link" href="#liveness">Liveness Detection</a>
+    <a class="toc-link" href="#geolocation">Geolocation</a>
+    <a class="toc-link" href="#data">Data Architecture</a>
+    <a class="toc-link" href="#features">Features</a>
+    <a class="toc-link" href="#security">Security</a>
+  </div>
+</nav>
+
+<div class="page-body">
+
+  <!-- ── SECTION 1: Overview ─────────────────────────────────────────────── -->
+  <section class="section" id="overview">
+    <p class="section-label">01 — System Overview</p>
+    <h2 class="section-title">What the System Does</h2>
+    <p class="section-lead">The Face Attendance System is a fully automated biometric attendance platform that eliminates proxy attendance through live facial verification. It is embedded directly inside the Zoho Creator application as a widget — no separate app to install — and records attendance with GPS location, a live-captured photo, timestamp, and check-in/check-out status.</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <p class="card-title">Zero proxy attendance</p>
+        <p class="card-desc">Multi-layer liveness detection prevents attendance using printed photos, phone screens, or recordings.</p>
+      </div>
+      <div class="card">
+        <p class="card-title">Instant recording</p>
+        <p class="card-desc">Attendance is queued within milliseconds of face recognition. The Zoho Creator record appears within seconds even under slow network conditions.</p>
+      </div>
+      <div class="card">
+        <p class="card-title">GPS-verified location</p>
+        <p class="card-desc">The trainee's device GPS coordinates are captured at check-in and check-out and stored with every attendance record.</p>
+      </div>
+      <div class="card">
+        <p class="card-title">Live photo audit trail</p>
+        <p class="card-desc">The actual camera frame used to verify the trainee is attached to the Zoho Creator attendance record as an audit photograph.</p>
+      </div>
+      <div class="card">
+        <p class="card-title">Native Zoho integration</p>
+        <p class="card-desc">Built as a Zoho Creator Widget using the official SDK v2. No data leaves the system boundary; attendance records are created directly in Creator.</p>
+      </div>
+      <div class="card">
+        <p class="card-title">Self-improving accuracy</p>
+        <p class="card-desc">Every successful verified check-in stores an updated face embedding, so the model adapts to lighting, ageing, and appearance changes over time.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 2: Technology Stack ────────────────────────────────────── -->
+  <section class="section" id="stack">
+    <p class="section-label">02 — Technology Stack</p>
+    <h2 class="section-title">Platform &amp; Frameworks</h2>
+    <p class="section-lead">The system is built on a lightweight Python backend, a vanilla-JavaScript browser widget, and a managed PostgreSQL database — all deployed on a containerised cloud environment with zero-downtime scaling.</p>
+
+    <h3>Frontend (Browser Widget)</h3>
+    <div class="spec-table-wrap">
+      <table>
+        <thead>
+          <tr><th>Component</th><th>Technology</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="td-label">UI Framework</td>
+            <td>Vanilla JavaScript (ES2020+)</td>
+            <td>No build step; loads directly inside Zoho Creator as a widget page.</td>
+          </tr>
+          <tr>
+            <td class="td-label">Zoho Creator SDK</td>
+            <td>Widget SDK v2</td>
+            <td>Reads user identity, queries Zoho records, and posts attendance directly via SDK when available.</td>
+          </tr>
+          <tr>
+            <td class="td-label">Face Mesh</td>
+            <td>MediaPipe Face Mesh 0.4</td>
+            <td>468-landmark real-time facial landmark tracking for browser-side blink and smile liveness challenge.</td>
+          </tr>
+          <tr>
+            <td class="td-label">AWS Face Liveness</td>
+            <td>AWS Amplify FaceLivenessDetector</td>
+            <td>Interactive oval-tracing liveness challenge triggered for escalation cases.</td>
+          </tr>
+          <tr>
+            <td class="td-label">Camera access</td>
+            <td>WebRTC <code>getUserMedia</code></td>
+            <td>Streams live webcam frames at the device's native resolution for capture and liveness checking.</td>
+          </tr>
+          <tr>
+            <td class="td-label">Styling</td>
+            <td>Bootstrap Icons + custom CSS</td>
+            <td>Icon set only; all layout is custom-written.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Backend (Server)</h3>
+    <div class="spec-table-wrap">
+      <table>
+        <thead>
+          <tr><th>Component</th><th>Technology</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="td-label">Web Framework</td>
+            <td>Python 3.11 · Flask</td>
+            <td>REST API endpoints for session auth, face verification, attendance queuing, and admin operations.</td>
+          </tr>
+          <tr>
+            <td class="td-label">WSGI Server</td>
+            <td>Gunicorn with <code>--preload</code></td>
+            <td>Multi-worker server. <code>--preload</code> loads the 350 MB face model once into the master process, then forks workers that share it via OS copy-on-write.</td>
+          </tr>
+          <tr>
+            <td class="td-label">Face Recognition</td>
+            <td>InsightFace (ONNX Runtime, CPU)</td>
+            <td>Detects faces and extracts 512-dimensional ArcFace embeddings for matching.</td>
+          </tr>
+          <tr>
+            <td class="td-label">Liveness (local)</td>
+            <td>MiniFASNetV2 ONNX (~1 MB)</td>
+            <td>Passive on-server anti-spoofing inference on every frame before face matching.</td>
+          </tr>
+          <tr>
+            <td class="td-label">Liveness (cloud)</td>
+            <td>AWS Rekognition + Amplify</td>
+            <td>Secondary liveness check used when local model is uncertain or trainee has prior spoof history.</td>
+          </tr>
+          <tr>
+            <td class="td-label">Zoho API</td>
+            <td>Zoho Creator REST API v2 · OAuth2</td>
+            <td>Reads student records and batches; posts attendance records with GPS, photo, and lookup fields.</td>
+          </tr>
+          <tr>
+            <td class="td-label">Rate Limiting</td>
+            <td>Flask-Limiter (memory or Redis)</td>
+            <td>120 req/min global, 60 req/min on attendance posting, 20 req/min on webhooks.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Infrastructure &amp; Hosting</h3>
+    <div class="kv-list">
+      <div class="kv"><span class="kv-key">Cloud provider</span><span class="kv-val">Render.com — Singapore region (ap-southeast-1)</span></div>
+      <div class="kv"><span class="kv-key">Container</span><span class="kv-val">Docker (custom image with InsightFace model pre-baked)</span></div>
+      <div class="kv"><span class="kv-key">Database (production)</span><span class="kv-val">PostgreSQL managed by Render</span></div>
+      <div class="kv"><span class="kv-key">Database (development)</span><span class="kv-val">SQLite with WAL mode (write-ahead logging) for concurrent access</span></div>
+      <div class="kv"><span class="kv-key">AWS region</span><span class="kv-val">ap-south-1 (Mumbai) for Rekognition and Face Liveness</span></div>
+      <div class="kv"><span class="kv-key">Keepalive</span><span class="kv-val">Scheduled self-ping to prevent Render free-tier sleep</span></div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 3: AI Models ────────────────────────────────────────────── -->
+  <section class="section" id="ai-models">
+    <p class="section-label">03 — AI Models</p>
+    <h2 class="section-title">Artificial Intelligence Components</h2>
+    <p class="section-lead">The system uses five distinct AI models operating at different layers of the verification pipeline. Each model has a specific, non-overlapping role; together they form a defence-in-depth architecture that balances accuracy, speed, and spoof resistance.</p>
+
+    <h3>1. InsightFace buffalo_l — Face Embedding Model</h3>
+    <div class="card accent-blue">
+      <p class="card-title">Role: face detection + embedding extraction (server-side)</p>
+      <p class="card-desc">This is the primary identification model. It detects the face in a submitted frame, extracts a 512-dimensional numerical fingerprint called an embedding, and that fingerprint is compared against stored enrollment embeddings to identify the trainee.</p>
+    </div>
+    <div class="kv-list">
+      <div class="kv"><span class="kv-key">Architecture</span><span class="kv-val">ResNet100 backbone trained with ArcFace loss (angular margin classification)</span></div>
+      <div class="kv"><span class="kv-key">Face detector</span><span class="kv-val">RetinaFace (included in buffalo_l model pack)</span></div>
+      <div class="kv"><span class="kv-key">Embedding size</span><span class="kv-val">512 floating-point values, L2-normalised to unit length</span></div>
+      <div class="kv"><span class="kv-key">Detection grid</span><span class="kv-val">320 × 320 px (reduced from 640 to fit within 2 GB RAM limit on hosted server)</span></div>
+      <div class="kv"><span class="kv-key">Similarity metric</span><span class="kv-val">Cosine similarity (dot product of two normalised vectors, range −1 to 1)</span></div>
+      <div class="kv"><span class="kv-key">Inference engine</span><span class="kv-val">ONNX Runtime, CPU provider (no GPU required)</span></div>
+      <div class="kv"><span class="kv-key">Model size on disk</span><span class="kv-val">~350 MB (loaded once at server start, shared across workers)</span></div>
+      <div class="kv"><span class="kv-key">Thread safety</span><span class="kv-val">Serialised with a per-process inference lock (ONNX session state is not thread-safe)</span></div>
+    </div>
+
+    <hr class="divider">
+
+    <h3>2. MiniFASNetV2 — Local Passive Anti-Spoofing</h3>
+    <div class="card accent-teal">
+      <p class="card-title">Role: spoof detection before face matching (server-side, free, instant)</p>
+      <p class="card-desc">This model examines the submitted frame and determines whether the face is physically present (live) or is a spoof artifact — a printed photo, phone screen, mask, or video replay. It runs before any identity matching occurs.</p>
+    </div>
+    <div class="kv-list">
+      <div class="kv"><span class="kv-key">Architecture</span><span class="kv-val">MiniFASNetV2 — lightweight ONNX model (~1.0 MB)</span></div>
+      <div class="kv"><span class="kv-key">Inference type</span><span class="kv-val">Passive (single frame, no user action required)</span></div>
+      <div class="kv"><span class="kv-key">Input</span><span class="kv-val">Face crop expanded 2.7× from detected bounding box, resized to 80 × 80 px</span></div>
+      <div class="kv"><span class="kv-key">Output</span><span class="kv-val">Softmax probability: index 1 = real-face probability (0.0 – 1.0)</span></div>
+      <div class="kv"><span class="kv-key">Threshold</span><span class="kv-val">0.65 — frames below this are flagged as suspected spoofs</span></div>
+      <div class="kv"><span class="kv-key">Fail-open behaviour</span><span class="kv-val">If model file is unavailable (development environment), the check is skipped gracefully</span></div>
+    </div>
+
+    <hr class="divider">
+
+    <h3>3. AWS Rekognition DetectFaces — Cloud Quality Check</h3>
+    <div class="card accent-amber">
+      <p class="card-title">Role: secondary image-quality and liveness override (cloud, escalation path)</p>
+      <p class="card-desc">When the local MiniFASNet model suspects a spoof but is not certain (confidence near the threshold), the frame is sent to AWS Rekognition as a second opinion. AWS analyses the face's sharpness, brightness, and detection confidence — if all three metrics meet the minimum thresholds, it overrides the local model's rejection and allows the check-in to proceed.</p>
+    </div>
+    <div class="kv-list">
+      <div class="kv"><span class="kv-key">API</span><span class="kv-val">AWS Rekognition <code>DetectFaces</code> with DEFAULT attributes</span></div>
+      <div class="kv"><span class="kv-key">Region</span><span class="kv-val">ap-south-1 (Mumbai)</span></div>
+      <div class="kv"><span class="kv-key">Override conditions</span><span class="kv-val">Detection confidence ≥ 90.0 AND sharpness ≥ 40.0 AND brightness ≥ 15.0</span></div>
+      <div class="kv"><span class="kv-key">Timeouts</span><span class="kv-val">5 s connect, 8 s read, max 1 retry</span></div>
+      <div class="kv"><span class="kv-key">Fail-safe</span><span class="kv-val">If AWS is unavailable, the local MiniFASNet decision stands (conservative fallback)</span></div>
+    </div>
+
+    <hr class="divider">
+
+    <h3>4. AWS Amplify FaceLivenessDetector — Interactive Oval Challenge</h3>
+    <div class="card accent-blue">
+      <p class="card-title">Role: active liveness verification for high-risk cases (browser-side + cloud)</p>
+      <p class="card-desc">For trainees with a prior spoof flag in their daily record, the system skips passive checks entirely and presents an AWS Face Liveness oval challenge: the trainee must align their face within a moving oval on screen. This active challenge is the strongest anti-spoofing layer and cannot be defeated by a static photo or screen recording.</p>
+    </div>
+    <div class="kv-list">
+      <div class="kv"><span class="kv-key">Trigger</span><span class="kv-val">Trainee has a prior spoof detection recorded for today, or MiniFASNet fails and AWS quality check also fails</span></div>
+      <div class="kv"><span class="kv-key">Flow</span><span class="kv-val">Browser requests session via <code>/api/face-liveness/create-session</code> → AWS session ID returned → Amplify component runs oval challenge in browser → session validated server-side</span></div>
+      <div class="kv"><span class="kv-key">Validation</span><span class="kv-val">Session result verified by the backend calling the AWS Face Liveness API; confidence score returned</span></div>
+    </div>
+
+    <hr class="divider">
+
+    <h3>5. MediaPipe Face Mesh — Browser-Side Liveness Challenge</h3>
+    <div class="card accent-teal">
+      <p class="card-title">Role: front-of-queue liveness challenge before the frame is sent to the server (browser-side, free)</p>
+      <p class="card-desc">Before any image is sent to the server, the browser uses MediaPipe's real-time face landmark model to verify that a live face is present by detecting a voluntary physical action — a blink or a smile. This eliminates simple spoofs at the client level before consuming any server or API resources.</p>
+    </div>
+    <div class="kv-list">
+      <div class="kv"><span class="kv-key">Model</span><span class="kv-val">MediaPipe Face Mesh v0.4 — 468 facial landmarks per frame</span></div>
+      <div class="kv"><span class="kv-key">Configuration</span><span class="kv-val">maxNumFaces = 1, refineLandmarks = true, minDetectionConfidence = 0.5</span></div>
+      <div class="kv"><span class="kv-key">Blink detection</span><span class="kv-val">Eye Aspect Ratio (EAR) computed from 6 landmarks per eye; exponential smoothing (α = 0.3); thresholds: close EAR &lt; 0.22, open EAR &gt; 0.27; 1 complete blink required</span></div>
+      <div class="kv"><span class="kv-key">Smile detection</span><span class="kv-val">Mouth width-to-height ratio threshold 0.7; 3 consecutive frames required</span></div>
+      <div class="kv"><span class="kv-key">Auto-switch</span><span class="kv-val">If the trainee has not completed the challenge within 15 seconds, the system alternates between blink and smile prompts automatically</span></div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 4: End-to-End Flow ─────────────────────────────────────── -->
+  <section class="section" id="flow">
+    <p class="section-label">04 — End-to-End Flow</p>
+    <h2 class="section-title">How a Check-In Works — Step by Step</h2>
+    <p class="section-lead">The complete attendance flow from widget load to Zoho Creator record creation. Each step is designed to be resilient: if any layer fails, the system falls back gracefully rather than blocking the trainee or losing data.</p>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div class="flow-body">
+          <p class="flow-title">Widget Loads in Zoho Creator</p>
+          <p class="flow-desc">The Face Attendance widget loads inside the trainer's or centre manager's Zoho Creator application page. The Zoho Creator Widget SDK v2 identifies the logged-in user (email address), which determines which centres they manage and which students to load.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div class="flow-body">
+          <p class="flow-title">GPS Permission &amp; Location Capture</p>
+          <p class="flow-desc">The widget requests the device's GPS location via the browser Geolocation API. A full-screen gate blocks the app until permission is granted and coordinates are obtained (high accuracy, max 30 s timeout). The coordinates are stored in browser memory and will be attached to every attendance record submitted from this session.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <div class="flow-body">
+          <p class="flow-title">Session Authentication</p>
+          <p class="flow-desc">The browser exchanges the user's email and Zoho environment for a 30-minute HMAC-SHA256 Bearer token from the backend (<code>/api/session</code>). Every subsequent API call carries this token; expired tokens are automatically re-issued once without interrupting the user.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">4</div>
+        <div class="flow-body">
+          <p class="flow-title">Student Data Loading</p>
+          <p class="flow-desc">The widget loads the list of enrolled trainees via a hybrid strategy: it first queries Zoho Creator directly via the Widget SDK (fastest, no server round-trip), then falls back to the backend's cached student list at <code>/api/preload</code> if the SDK query is insufficient. The backend caches embeddings for 24 hours in its local PostgreSQL database, refreshing only stale or missing entries from Zoho.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">5</div>
+        <div class="flow-body">
+          <p class="flow-title">Browser Liveness Challenge (MediaPipe)</p>
+          <p class="flow-desc">The trainee faces the camera. MediaPipe Face Mesh tracks 468 facial landmarks in real time. The system randomly requires either a blink or a smile — a voluntary movement that proves the face is live and physically present, not a photo or screen. The challenge automatically switches if not completed within 15 seconds.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">6</div>
+        <div class="flow-body">
+          <p class="flow-title">Frame Capture &amp; Server Submission</p>
+          <p class="flow-desc">On completing the browser liveness challenge, the frame is captured from the canvas as a JPEG and sent as a base64-encoded payload to <code>/api/verify</code> along with the GPS coordinates and device session ID. The request is authenticated with the Bearer token.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">7</div>
+        <div class="flow-body">
+          <p class="flow-title">Server-Side Liveness Check (MiniFASNet)</p>
+          <p class="flow-desc">The server decodes the image, detects the face bounding box, and passes the face crop to the MiniFASNetV2 ONNX model for passive anti-spoofing analysis. If the real-face probability is below 0.65, the frame is flagged as a suspected spoof. Depending on whether a prior spoof flag exists for this trainee today, the system either: (a) escalates to AWS Rekognition for a quality override check, or (b) triggers the AWS Face Liveness oval challenge in the browser.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">8</div>
+        <div class="flow-body">
+          <p class="flow-title">Face Embedding Matching</p>
+          <p class="flow-desc">If liveness checks pass, the InsightFace buffalo_l model extracts a 512-dimensional embedding from the frame. This is compared against stored embeddings for all trainees in the loaded scope using cosine similarity. The trainee with the highest mean similarity across their top-2 stored embeddings is selected — provided their score exceeds the 0.50 tolerance threshold AND they beat the nearest other trainee by at least 0.08 margin.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">9</div>
+        <div class="flow-body">
+          <p class="flow-title">Self-Learning Embedding Update</p>
+          <p class="flow-desc">If the match confidence is 70% or above, the live-capture embedding is stored as a new verified reference embedding for that trainee (cycling through <code>verified_1</code>, <code>verified_2</code>, <code>verified_3</code> slots). Future matches will use this updated embedding, adapting to lighting, appearance, and angle changes over time.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">10</div>
+        <div class="flow-body">
+          <p class="flow-title">Attendance Queued Instantly</p>
+          <p class="flow-desc">The matched trainee's check-in is recorded immediately to the local PostgreSQL outbox queue. Three deduplication layers (in-memory set, database count check, and UNIQUE constraint) ensure exactly-once recording even under concurrent requests or network retries. The trainee sees a success confirmation in under 2 seconds regardless of Zoho API latency.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">11</div>
+        <div class="flow-body">
+          <p class="flow-title">Background Worker Posts to Zoho Creator</p>
+          <p class="flow-desc">A background worker drains the queue and POSTs each attendance record to the Zoho Creator Attendance form via the REST API v2. The record includes: trainee lookup, date, check-in time (IST), attendance status (Present), zone, centre, batch, GPS coordinates (latitude/longitude), source identifier ("Face Recognition"), and the live-captured JPEG photograph. Failed posts retry up to 5 times with exponential backoff (5 s → 15 s → 45 s → 135 s → 405 s).</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">12</div>
+        <div class="flow-body">
+          <p class="flow-title">Live Photo Attached to Zoho Record</p>
+          <p class="flow-desc">After the attendance record is created in Zoho Creator, the backend patches the record with the live-capture JPEG, uploading it to the designated image field (<code>Live_Captured_Image</code>). This provides an auditable photograph of the trainee at the moment of check-in.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 5: Face Matching Algorithm ─────────────────────────────── -->
+  <section class="section" id="face-matching">
+    <p class="section-label">05 — Face Matching</p>
+    <h2 class="section-title">How Face Verification Works</h2>
+    <p class="section-lead">The face matching algorithm is designed to be both accurate and robust against false positives. It uses cosine similarity of ArcFace embeddings with two independent acceptance criteria — absolute score and competitive margin — both of which must pass simultaneously.</p>
+
+    <h3>Embedding Storage</h3>
+    <p>Each trainee can have up to four stored face embeddings in the system's local database:</p>
+    <div class="spec-table-wrap">
+      <table>
+        <thead><tr><th>Slot</th><th>Source</th><th>When Created</th></tr></thead>
+        <tbody>
+          <tr><td><code class="td-mono">enrollment</code></td><td>Enrollment photo from Zoho Creator</td><td>When the student record is first loaded from Zoho</td></tr>
+          <tr><td><code class="td-mono">verified_1</code></td><td>Live camera capture at check-in</td><td>First successful check-in with ≥ 70% confidence</td></tr>
+          <tr><td><code class="td-mono">verified_2</code></td><td>Live camera capture at check-in</td><td>Second successful high-confidence check-in</td></tr>
+          <tr><td><code class="td-mono">verified_3</code></td><td>Live camera capture at check-in</td><td>Third successful high-confidence check-in (oldest slot recycled)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Matching Algorithm</h3>
+    <p>When a face is submitted for verification, the following process runs in sequence:</p>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div class="flow-body">
+          <p class="flow-title">Build embedding matrix</p>
+          <p class="flow-desc">All stored embeddings for all in-scope trainees are assembled into a matrix. A trainee with 4 stored embeddings contributes 4 rows; one with only an enrollment photo contributes 1 row.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div class="flow-body">
+          <p class="flow-title">Compute cosine similarities</p>
+          <p class="flow-desc">The submitted embedding (512-d unit vector) is dot-producted against every row of the matrix in a single NumPy operation. Because both vectors are L2-normalised, the dot product equals cosine similarity, ranging from −1 (opposite) to 1 (identical).</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <div class="flow-body">
+          <p class="flow-title">Per-student score (Top-2 mean)</p>
+          <p class="flow-desc">For each trainee, the top-2 highest similarities across their stored embeddings are averaged. This prevents a single weak or incorrectly-learned embedding from carrying a false match — it must perform consistently across the two best embeddings.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">4</div>
+        <div class="flow-body">
+          <p class="flow-title">Two-gate acceptance check</p>
+          <p class="flow-desc">The top-scoring trainee passes only if: <strong>(a) Absolute threshold:</strong> their score ≥ 0.50, AND <strong>(b) Margin check:</strong> their score beats the second-highest trainee by at least 0.08. If the match is ambiguous (two trainees score similarly), it is rejected and the trainee is asked to retry — this prevents misidentification in group settings.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Configurable Thresholds</h3>
+    <div class="spec-table-wrap">
+      <table>
+        <thead><tr><th>Parameter</th><th>Default</th><th>Range</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="td-label">Match tolerance</td>
+            <td><span class="pill blue">0.50</span></td>
+            <td>0.20 – 0.80</td>
+            <td>Minimum cosine similarity to accept a match. Higher values are stricter.</td>
+          </tr>
+          <tr>
+            <td class="td-label">Minimum margin</td>
+            <td><span class="pill blue">0.08</span></td>
+            <td>0.0 – 0.30</td>
+            <td>Winner must beat runner-up by at least this amount to prevent ambiguous matches.</td>
+          </tr>
+          <tr>
+            <td class="td-label">Top-K embeddings</td>
+            <td><span class="pill blue">2</span></td>
+            <td>1 – 5</td>
+            <td>Number of best embeddings per student averaged into the final score.</td>
+          </tr>
+          <tr>
+            <td class="td-label">Verified embedding min confidence</td>
+            <td><span class="pill blue">70%</span></td>
+            <td>0 – 99.9%</td>
+            <td>Minimum match confidence for a live-capture embedding to be stored as a verified reference.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Confidence Score</h3>
+    <p>When a match is accepted, a 0–100% confidence score is calculated and displayed to the operator. The score is derived as: <code>(best_score − tolerance) / (0.75 − tolerance) × 100</code>, capped at 99.9%. A score of 70%+ is required before a live-capture frame is stored as a future reference embedding.</p>
+
+    <h3>Enrollment Photo Handling</h3>
+    <p>Enrollment photos are downloaded from Zoho Creator and encoded using the same InsightFace model. The system handles several edge cases automatically:</p>
+    <ul class="feature-list">
+      <li>HEIC / HEIF format (iPhone photos) decoded via <code>pillow-heif</code></li>
+      <li>EXIF orientation correction applied before encoding</li>
+      <li>Automatic 90°, 180°, 270° rotation fallbacks for photos with missing or incorrect EXIF data</li>
+      <li>Large images (over 1920 px) downsampled before processing to prevent out-of-memory errors on the 2 GB server</li>
+    </ul>
+  </section>
+
+  <!-- ── SECTION 6: Liveness Detection ──────────────────────────────────── -->
+  <section class="section" id="liveness">
+    <p class="section-label">06 — Anti-Spoofing</p>
+    <h2 class="section-title">Multi-Layer Liveness Detection</h2>
+    <p class="section-lead">The system uses four independent liveness layers arranged in a decision tree. Layers 1 and 2 are always active for every check-in; layers 3 and 4 are triggered only on escalation. This design minimises API costs and latency for legitimate trainees while providing the strongest available protection against spoofing.</p>
+
+    <div class="layer-diagram">
+      <div class="layer">
+        <div class="layer-icon blue">👁</div>
+        <div class="layer-content">
+          <p class="layer-name">Layer 1 — MediaPipe Blink / Smile Challenge (browser)</p>
+          <p class="layer-detail">Runs in the browser before the frame leaves the device. Proves a live face is physically present by requiring a voluntary blink or smile, defeating static photos and passive video replays.</p>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer-icon teal">🛡</div>
+        <div class="layer-content">
+          <p class="layer-name">Layer 2 — MiniFASNetV2 Passive Anti-Spoofing (server)</p>
+          <p class="layer-detail">Every submitted frame is analysed by an on-server ONNX model for spoof artifacts (texture, moiré patterns, screen reflections). Runs in &lt; 50 ms. No API cost.</p>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer-icon amber">☁</div>
+        <div class="layer-content">
+          <p class="layer-name">Layer 3 — AWS Rekognition Quality Override (cloud, escalation)</p>
+          <p class="layer-detail">Triggered when Layer 2 is uncertain. AWS independently assesses detection confidence, sharpness, and brightness. If all three exceed minimum thresholds, it overrides the local rejection — preventing false positives in difficult lighting.</p>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer-icon blue">🔵</div>
+        <div class="layer-content">
+          <p class="layer-name">Layer 4 — AWS Amplify Face Liveness Oval Challenge (interactive, highest assurance)</p>
+          <p class="layer-detail">Triggered for trainees with a prior spoof flag today, or when both Layers 2 and 3 fail. The trainee must align their face within a moving oval on screen — an active biometric challenge that cannot be defeated by any static or recorded media.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Spoof History Tracking</h3>
+    <p>The system maintains a daily spoof attempt log (<code>spoof_attempts</code> table) and a spoof block table (<code>spoof_blocks</code>). A trainee whose device has triggered a spoof detection today is automatically escalated to Layer 4 for all subsequent check-in attempts that day, bypassing the lighter checks.</p>
+  </section>
+
+  <!-- ── SECTION 7: Geolocation ──────────────────────────────────────────── -->
+  <section class="section" id="geolocation">
+    <p class="section-label">07 — GPS &amp; Geolocation</p>
+    <h2 class="section-title">Location Verification</h2>
+    <p class="section-lead">Every attendance record is paired with GPS coordinates captured from the trainee's device at the moment of check-in and check-out. This creates an auditable location trail for each attendance event, enabling centre-level proximity verification within Zoho Creator.</p>
+
+    <h3>How Location is Captured</h3>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div class="flow-body">
+          <p class="flow-title">GPS gate on widget load</p>
+          <p class="flow-desc">When the widget first loads, a full-screen overlay blocks the app and requests browser Geolocation permission (<code>navigator.geolocation.getCurrentPosition</code>). The request uses <code>enableHighAccuracy: true</code> and a 30-second timeout. The widget does not proceed until a valid position is obtained.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div class="flow-body">
+          <p class="flow-title">Coordinates held in browser memory</p>
+          <p class="flow-desc">The latitude and longitude are stored in JavaScript state (<code>_gpsState.lat</code>, <code>_gpsState.lng</code>) for the duration of the session. If location is denied, a "GPS required" error screen is shown and the app remains blocked.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <div class="flow-body">
+          <p class="flow-title">Coordinates sent with every attendance record</p>
+          <p class="flow-desc">At check-in and again at check-out, the coordinates are included in the POST payload sent to <code>/api/post-attendance</code>. The backend stores them in the local queue and forwards them to Zoho Creator in the attendance record.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">4</div>
+        <div class="flow-body">
+          <p class="flow-title">Stored as four fields in Zoho Creator</p>
+          <p class="flow-desc">The Zoho Creator Attendance form has four dedicated fields: <code>Checkin_Latitude</code>, <code>Checkin_Longitude</code>, <code>Checkout_Latitude</code>, and <code>Checkout_Longitude</code>. These are populated by the backend for every record.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Distance Calculation &amp; Proximity Verification</h3>
+    <div class="callout">
+      <strong>How it works:</strong> The GPS coordinates captured from the trainee's device are stored verbatim in the Zoho Creator attendance record. The centre's assigned latitude and longitude are stored in the Zoho Creator Centres record. Distance calculation — computing the gap between the trainee's location and the centre location, and enforcing any proximity policy — is performed by Zoho Creator workflows and Deluge functions that compare these field values. This architecture keeps geofencing rules inside Zoho Creator where they can be updated by the operations team without code changes.
+    </div>
+
+    <div class="kv-list">
+      <div class="kv"><span class="kv-key">Check-in latitude field</span><span class="kv-val"><code>Checkin_Latitude</code></span></div>
+      <div class="kv"><span class="kv-key">Check-in longitude field</span><span class="kv-val"><code>Checkin_Longitude</code></span></div>
+      <div class="kv"><span class="kv-key">Check-out latitude field</span><span class="kv-val"><code>Checkout_Latitude</code></span></div>
+      <div class="kv"><span class="kv-key">Check-out longitude field</span><span class="kv-val"><code>Checkout_Longitude</code></span></div>
+      <div class="kv"><span class="kv-key">GPS accuracy mode</span><span class="kv-val"><code>enableHighAccuracy: true</code> — uses device GPS hardware, not IP/Wi-Fi approximation</span></div>
+      <div class="kv"><span class="kv-key">Maximum coordinate age</span><span class="kv-val">30,000 ms (30 seconds) — location is considered fresh for half a minute</span></div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 8: Data Architecture ───────────────────────────────────── -->
+  <section class="section" id="data">
+    <p class="section-label">08 — Data &amp; Integration</p>
+    <h2 class="section-title">Data Architecture &amp; Zoho Integration</h2>
+
+    <h3>Local Database Schema</h3>
+    <p>The backend maintains a local PostgreSQL database (SQLite in development) with the following core tables:</p>
+    <div class="spec-table-wrap">
+      <table>
+        <thead><tr><th>Table</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td class="td-label">face_embeddings</td><td>Stores up to 4 embeddings per trainee (512 float values as JSON), keyed by <code>(student_id, source)</code>. UNIQUE constraint prevents duplicates.</td></tr>
+          <tr><td class="td-label">student_cache</td><td>Local mirror of Zoho trainee records (name, ID, batch, centre). Refreshed with 24-hour TTL.</td></tr>
+          <tr><td class="td-label">attendance_queue</td><td>Outbox queue for Zoho Creator POST. Holds pending, processing, posted, and failed records with retry state.</td></tr>
+          <tr><td class="td-label">checkin_state</td><td>Tracks today's check-in and check-out status per trainee. UNIQUE constraint on <code>(student_id, date_str)</code> provides atomic deduplication.</td></tr>
+          <tr><td class="td-label">spoof_attempts</td><td>Daily log of spoof detection events per device/trainee for escalation decisions.</td></tr>
+          <tr><td class="td-label">spoof_blocks</td><td>Active spoof blocks requiring Layer 4 liveness for subsequent attempts.</td></tr>
+          <tr><td class="td-label">daily_cache</td><td>Per-day cache flags (e.g., AWS liveness gate state) scoped to trainee and date.</td></tr>
+          <tr><td class="td-label">checkin_photos</td><td>Optional rolling 3-day store of check-in JPEG thumbnails for the admin panel viewer.</td></tr>
+          <tr><td class="td-label">centre_meta</td><td>Centre-level metadata cached from Zoho Creator (centre ID, name, zone, login email).</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Zoho Creator Integration</h3>
+    <p>The backend authenticates to Zoho Creator via OAuth2 refresh token flow. The access token is cached with a 90-second pre-expiry buffer and refreshed thread-safely. All API calls target Zoho Creator REST API v2 and are scoped to the configured application.</p>
+
+    <div class="two-col">
+      <div class="card">
+        <p class="card-title">Student data fetch strategy</p>
+        <p class="card-desc">3-layer filtering: (1) server-side Zoho criteria by batch IDs; (2) Python-side batch filter as a safety net; (3) Python-side centre filter as fallback for environments where batch traversal returns 404.</p>
+      </div>
+      <div class="card">
+        <p class="card-title">Multi-centre scoping</p>
+        <p class="card-desc">Students and batches are loaded only for the centres assigned to the logged-in Zoho user. Scope keys (<code>C:{id1},{id2}</code>) ensure complete cache isolation between centre managers.</p>
+      </div>
+      <div class="card">
+        <p class="card-title">Outbox retry schedule</p>
+        <p class="card-desc">Failed Zoho API posts retry at 5 s, 15 s, 45 s, 135 s, and 405 s (×3 exponential backoff), up to 5 attempts. After 5 failures the record is marked FAILED and surfaced in the admin panel.</p>
+      </div>
+      <div class="card">
+        <p class="card-title">Webhook gap-fill</p>
+        <p class="card-desc">Zoho Creator webhooks notify the backend when new students enrol. The backend fetches only the specific new students (by ID, in chunks of 20) and adds their embeddings to the local cache without a full refresh.</p>
+      </div>
+    </div>
+
+    <h3>Attendance Record Fields (Zoho Creator)</h3>
+    <p>Each attendance record created in Zoho Creator contains:</p>
+    <div class="kv-list">
+      <div class="kv"><span class="kv-key">Trainee</span><span class="kv-val">Lookup to trainee record via registration number</span></div>
+      <div class="kv"><span class="kv-key">Attendance Date</span><span class="kv-val">Today's date in IST</span></div>
+      <div class="kv"><span class="kv-key">Check In Time</span><span class="kv-val">Timestamp at moment of face recognition (IST)</span></div>
+      <div class="kv"><span class="kv-key">Attendance Status</span><span class="kv-val">"Present" (fixed)</span></div>
+      <div class="kv"><span class="kv-key">Zone</span><span class="kv-val">Lookup resolved from the centre's zone field</span></div>
+      <div class="kv"><span class="kv-key">Centre</span><span class="kv-val">Lookup to the trainee's assigned centre</span></div>
+      <div class="kv"><span class="kv-key">Batch</span><span class="kv-val">Lookup to the trainee's current batch</span></div>
+      <div class="kv"><span class="kv-key">Source</span><span class="kv-val">"Face Recognition" (fixed identifier for filtering)</span></div>
+      <div class="kv"><span class="kv-key">Check-in Latitude / Longitude</span><span class="kv-val">Device GPS coordinates at time of check-in</span></div>
+      <div class="kv"><span class="kv-key">Check-out Latitude / Longitude</span><span class="kv-val">Device GPS coordinates at time of check-out</span></div>
+      <div class="kv"><span class="kv-key">Live Captured Image</span><span class="kv-val">JPEG photograph from the camera at the moment of verification</span></div>
+      <div class="kv"><span class="kv-key">Checked Out</span><span class="kv-val">"Yes" / "No" — updated when the trainee checks out</span></div>
+      <div class="kv"><span class="kv-key">Check Out Time</span><span class="kv-val">Timestamp at moment of check-out (IST)</span></div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 9: Features ─────────────────────────────────────────────── -->
+  <section class="section" id="features">
+    <p class="section-label">09 — Feature Set</p>
+    <h2 class="section-title">Complete Feature List</h2>
+
+    <h3>Attendance Operations</h3>
+    <ul class="feature-list">
+      <li>Face-verified check-in with live liveness challenge (blink or smile)</li>
+      <li>Face-verified check-out with separate GPS coordinates</li>
+      <li>Check-in cutoff time (configurable; check-ins blocked after 16:50 IST by default; check-out is unaffected)</li>
+      <li>Instant visual confirmation to the operator on successful recognition</li>
+      <li>Trainee name and photo displayed after successful match</li>
+      <li>Session success counter tracking how many trainees have checked in this session</li>
+      <li>30-second inactivity auto-reset between trainees</li>
+    </ul>
+
+    <h3>Anti-Spoofing &amp; Security</h3>
+    <ul class="feature-list">
+      <li>Four-layer liveness verification (browser → passive server → AWS quality → AWS interactive challenge)</li>
+      <li>Daily spoof history tracking with automatic escalation to strongest liveness layer</li>
+      <li>Minimum match margin check to reject ambiguous near-misses between similar-looking trainees</li>
+      <li>HMAC-SHA256 session token authentication on all API calls</li>
+      <li>CORS restricted to Zoho Creator and Render origins</li>
+      <li>Rate limiting on all endpoints (120 req/min global, 60 req/min on attendance)</li>
+      <li>5 MB maximum request body size</li>
+    </ul>
+
+    <h3>Data Integrity &amp; Reliability</h3>
+    <ul class="feature-list">
+      <li>Three-layer attendance deduplication: in-memory set → database count → UNIQUE constraint</li>
+      <li>Async outbox queue — attendance is recorded instantly even if Zoho API is slow or down</li>
+      <li>Exponential backoff retry (up to 5 attempts, max ~7 minutes total)</li>
+      <li>Self-learning face embeddings (verified captures stored and used in future matches)</li>
+      <li>Minimum confidence gate on embedding storage (70%) to prevent corrupt embeddings from forming</li>
+    </ul>
+
+    <h3>Multi-Centre &amp; Zoho Integration</h3>
+    <ul class="feature-list">
+      <li>Centre-scoped student loading — each manager sees only their assigned centres</li>
+      <li>Ongoing-batch filtering — only trainees in currently active batches are loaded</li>
+      <li>Webhook-triggered gap-fill for new students enrolled mid-session</li>
+      <li>Hybrid student loading (SDK-first with server fallback for maximum speed)</li>
+      <li>Hybrid attendance posting (server queue primary, SDK direct as fallback)</li>
+      <li>Zoho Creator environment awareness (sandbox vs. production)</li>
+    </ul>
+
+    <h3>Device &amp; Enrollment Compatibility</h3>
+    <ul class="feature-list">
+      <li>HEIC / HEIF enrollment photo support (iPhone native format via <code>pillow-heif</code>)</li>
+      <li>EXIF auto-rotation for sideways or upside-down enrollment photos</li>
+      <li>Automatic 90° / 180° / 270° rotation fallback for photos with missing EXIF data</li>
+      <li>Large-image downsampling (over 1920 px) to prevent memory overflow</li>
+      <li>Device session ID per device per day (survives widget reload; resets next calendar day)</li>
+    </ul>
+
+    <h3>Admin Panel</h3>
+    <ul class="feature-list">
+      <li>Cookie-authenticated admin interface (separate from trainee widget)</li>
+      <li>Cache status and health monitoring</li>
+      <li>Manual cache refresh for all centres or a specific centre</li>
+      <li>Queue status view — pending, processing, posted, and failed records</li>
+      <li>Spoof attempt and block history</li>
+      <li>Check-in photo viewer (3-day rolling retention)</li>
+      <li>OAuth re-authentication page for token refresh</li>
+    </ul>
+  </section>
+
+  <!-- ── SECTION 10: Security ────────────────────────────────────────────── -->
+  <section class="section" id="security">
+    <p class="section-label">10 — Security &amp; Privacy</p>
+    <h2 class="section-title">Security Architecture</h2>
+
+    <h3>Authentication &amp; Authorization</h3>
+    <div class="card-grid">
+      <div class="card">
+        <p class="card-title">Session tokens</p>
+        <p class="card-desc">30-minute HMAC-SHA256 Bearer tokens issued per user. Auto-renewed once on 401 without user interruption. Admin panel uses separate cookie auth.</p>
+      </div>
+      <div class="card">
+        <p class="card-title">Zoho OAuth2</p>
+        <p class="card-desc">Refresh token flow with thread-safe access token caching and 90-second pre-expiry buffer. Credentials stored as environment variables on Render, never in code.</p>
+      </div>
+      <div class="card">
+        <p class="card-title">CORS policy</p>
+        <p class="card-desc">API accepts requests only from Zoho Creator domains, the Render service URL, and localhost for development. All other origins are rejected at the network layer.</p>
+      </div>
+      <div class="card">
+        <p class="card-title">Rate limiting</p>
+        <p class="card-desc">120 req/min global, 60 req/min on attendance posting, 20 req/min on webhooks. Protects against brute-force and denial-of-service attempts.</p>
+      </div>
+    </div>
+
+    <h3>Biometric Data Handling</h3>
+    <div class="callout">
+      <strong>Face embeddings are mathematical abstractions, not photographs.</strong> The 512-dimensional vectors stored in the database cannot be reverse-engineered into a face image. The raw enrollment photographs from Zoho Creator are processed in memory and then discarded — only the numerical embeddings are persisted locally. Live-capture JPEGs are held only long enough to upload to the Zoho Creator record and are not stored permanently on the backend.
+    </div>
+
+    <h3>Infrastructure Security</h3>
+    <ul class="feature-list">
+      <li>All traffic served over TLS (HTTPS) via Render's managed edge</li>
+      <li>No secrets in source code — all credentials loaded from environment variables</li>
+      <li>Server refuses to start if <code>SECRET_KEY</code> or <code>ADMIN_SECRET</code> are left at default values in production</li>
+      <li>5 MB maximum request body — prevents memory exhaustion via oversized uploads</li>
+      <li>ONNX inference serialised per process — no race conditions in concurrent workers</li>
+    </ul>
+  </section>
+
+</div><!-- /page-body -->
+
+<!-- ── FOOTER ─────────────────────────────────────────────────────────────── -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-text">
+      Face Attendance System — Technical Documentation<br>
+      Prepared for client review · 2026
+    </div>
+    <div>
+      <div class="footer-badge">EdZola</div>
+      <div class="footer-tagline">Systems built for the world's hardest work.</div>
+    </div>
+  </div>
+</footer>
+
+</body></html>
